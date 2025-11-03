@@ -1,0 +1,30 @@
+{% extends 'base.html' %} 
+
+{% block section %}
+    <div class="container" style="margin-bottom: 100px;">
+        <h1 style="margin-top: 200px;">Add New Room to <span style="color: green; text-decoration: underline;">{{ hotel_name }}</span></h1>
+        <p style="color: grey;">Use the form below to register a new room for rent.</p>
+        
+        <form method="post" enctype="multipart/form-data" >
+            {% csrf_token %}
+            
+            {% comment %} 
+                Render any non-field errors (e.g., unique_together errors) 
+            {% endcomment %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {{ form.as_p }}
+
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-plus-circle"></i> Save Room
+            </button>
+            <a href="{% url 'home' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </form>
+    </div>
+{% endblock %}

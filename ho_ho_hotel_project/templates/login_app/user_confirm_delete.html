@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block section %}
+<div class="container" style="padding-top: 150px; padding-bottom: 50px;">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <h1 class="text-center mb-4 text-danger">{{ title }}</h1>
+            
+            <div class="card shadow-lg border-danger">
+                <div class="card-body">
+                    <div class="alert alert-danger" role="alert">
+                        <h4 class="alert-heading">⚠️ **WARNING: Permanent Action**</h4>
+                        <p>You are about to permanently delete the account for **{{ user_to_delete.username }}**.</p>
+                        
+                        {% if user_to_delete.is_hotel_owner %}
+                            {% if hotel %}
+                                <p class="mb-0">This will also **PERMANENTLY DELETE** the associated **Hotel Details** for *{{ hotel.hotel_name }}*.</p>
+                            {% else %}
+                                <p class="mb-0">This is a Hotel Owner account. Deleting it will remove the user record.</p>
+                            {% endif %}
+                        {% else %}
+                            <p class="mb-0">This action cannot be undone.</p>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <p class="mt-4">Are you absolutely sure you want to proceed?</p>
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-danger btn-lg">Yes, Delete My Account</button>
+                            <a href="{% url 'profile' %}" class="btn btn-secondary">Cancel and Go Back</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

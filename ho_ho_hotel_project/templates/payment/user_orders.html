@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Your Bookings{% endblock %}
+
+{% block section %}
+    <div class="container my-5" style="min-height: 70vh;">
+        <h1 class="text-primary mb-4" style="margin-top: 200px;">🏠 Your Confirmed Bookings</h1>
+        <p class="lead">Review the rooms you have successfully booked.</p>
+
+        {% if orders %}
+            <div class="list-group">
+                {% for order in orders %}
+                <div class="list-group-item list-group-item-action shadow-sm mb-3">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1 text-success">
+                            Booking ID: {{ order.razorpay_order_id|truncatechars:25 }} 
+                        </h5>
+                        <small class="text-muted">Booked On: <i class="fa-regular fa-calendar"></i> {{ order.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    <p>Status: <span class="badge bg-success">PAID</span></p>
+
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="mb-1">{{ order.room.room_type }} - Room {{ order.room.room_number }}</h4>
+                            <p class="mb-1">
+                                <i class="fas fa-hotel me-1"></i> Hotel: <strong>{{ order.room.hotel.hotel_name }}</strong>
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-map-marker-alt me-1"></i> Location: {{ order.room.hotel.place }}
+                            </p>
+                            <a href="{% url 'room_detail' pk=order.room.id %}" class="btn btn-sm btn-outline-primary mt-2">View Room Details</a>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <p class="fs-5 text-primary">
+                                Amount Paid: 
+                                <strong style="color: rgb(0, 168, 0);">₹{{ order.amount|floatformat:2|intcomma }}</strong>
+                            </p>
+                            <small class="text-muted">Payment ID: {{ order.razorpay_payment_id|truncatechars:15 }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {# Optional: Add Pagination links here if paginate_by is set #}
+
+        {% else %}
+            <div class="alert alert-warning text-center mt-5">
+                <i class="fas fa-exclamation-triangle me-2"></i> You have not made any successful bookings yet.
+                <p class="mt-2">Start your search from the <a href="{% url 'home' %}" class="alert-link">Home Page</a>!</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

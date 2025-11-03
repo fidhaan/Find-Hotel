@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Ho Ho Hotel</title>
+    <!-- Load Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8f8f8; }
+        
+        /* Base style for all input fields rendered by Django */
+        .form-field-container input {
+            /* Apply Tailwind classes to inputs for styling consistency */
+            @apply w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-800 transition duration-150 ease-in-out;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        /* Focus style for input fields */
+        .form-field-container input:focus {
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.4); /* Tailwind green-500 shadow */
+            border-color: #22c55e; /* Tailwind green-500 border */
+            outline: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border border-gray-100">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-800">Ho Ho Hotel</h1>
+            <p class="text-sm text-gray-500 mt-1">Sign in to your account</p>
+        </div>
+
+        <!-- Display Django Messages (e.g., success messages from registration) -->
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="p-3 mb-2 rounded-lg text-sm text-white 
+                        {% if message.tags == 'success' %}bg-green-500 
+                        {% elif message.tags == 'error' %}bg-red-500 
+                        {% else %}bg-blue-500{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Login Form -->
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Form Fields Loop (Renders username/email and password) -->
+            {% for field in form %}
+                <div class="form-field-container">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ field.label }}
+                        <!-- Hint for the username field to clarify it accepts email -->
+                        {% if field.label == 'Username' %}
+                            
+                        {% endif %}
+                    </label>
+                    
+                    <!-- RENDER INPUT FIELD: The 'style' block in <head> applies the Tailwind styling to this input -->
+                    {{ field }}
+                    
+                    {% if field.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ field.errors }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <!-- Hidden field for redirecting after successful login -->
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}" />
+            {% endif %}
+
+            <button type="submit" 
+                class="w-full bg-green-600 text-white py-3 px-4 rounded-xl font-semibold 
+                        hover:bg-green-700 transition duration-150 ease-in-out shadow-lg 
+                        focus:outline-none focus:ring-4 focus:ring-green-300">
+                Log In
+            </button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-gray-500">
+            Don't have an account? 
+            <a href="{% url 'register' %}" class="font-medium text-green-600 hover:text-green-500 transition duration-150">
+                Register now
+            </a> | <a href="{% url 'owner_register' %}" class="font-medium text-blue-600 hover:text-blue-500 transition duration-150">Register as Hotel Owner</a>
+        </p>
+
+        <!-- Display non-field errors if any (e.g., invalid login attempt) -->
+        {% if form.non_field_errors %}
+            <div class="mt-4 p-3 rounded-lg text-sm bg-red-100 text-red-700 border border-red-300">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

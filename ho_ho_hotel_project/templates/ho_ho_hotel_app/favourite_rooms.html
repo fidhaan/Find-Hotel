@@ -1,0 +1,115 @@
+{% extends 'base.html' %} 
+
+{% block section %}
+<div class="container my-5">
+    <h1 class="mb-4" style="margin-top: 200px; text-decoration: none;"><u style="color: black;">Your Favourite Rooms</u> 💖</h1>
+
+    {% if favourite_rooms %}
+        <div class="row">
+            {% for room in favourite_rooms %}
+    <div class="col-md-6 col-lg-4 mb-4" id="room-card-{{ room.id }}">
+        <div class="card h-100 shadow-sm">
+                        
+                        {# Card Image (using the safe check you learned) #}
+                        {% if room.photo %}
+                            <img src="{{ room.photo.url }}" class="card-img-top" alt="Photo of Room {{ room.room_number }}">
+                        {% endif %}
+
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">
+                                Room #{{ room.room_number }} - {{ room.room_type }}
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-muted">@ {{ room.hotel.hotel_name }}</h6>
+                            <p class="card-text">{{ room.description|truncatechars:100 }}</p>
+                            <p class="h4" style="color: green;">
+                                ₹{{ room.price_per_night }}<span style="color: black; font-size: 0.7em;">/ night</span>
+                            </p>
+                            
+                            <a href="{% url 'room_detail' pk=room.id %}" class="btn btn-sm btn-outline-primary">View Details & Book</a>
+                            
+                            {# You might want a button to remove from favourites here #}
+                            <button 
+                    type="button" 
+                    class="btn btn-sm btn-danger btn-remove-favourite" 
+                    data-room-id="{{ room.id }}"
+                    data-card-id="room-card-{{ room.id }}"> 
+                    <i class="fas fa-trash-alt me-1"></i> Remove
+                </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {# Include pagination controls here if you set paginate_by #}
+        
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            You haven't added any rooms to your favourites yet.
+        </div>
+    {% endif %}
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const removeButtons = document.querySelectorAll('.btn-remove-favourite');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const toggleUrl = "{% url 'toggle_favourite' %}"; // Uses your existing URL name
+
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const roomId = this.getAttribute('data-room-id');
+                const cardId = this.getAttribute('data-card-id');
+                const cardElement = document.getElementById(cardId);
+                
+                // Optimistic UI update: disable the button immediately
+                this.disabled = true;
+
+                fetch(toggleUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken, 
+                        'X-Requested-With': 'XMLHttpRequest' 
+                    },
+                    body: JSON.stringify({ room_id: roomId })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.message); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+    // We are on the favorites list. The intent is always to remove.
+    // We only care if the database interaction was successful (HTTP 200).
+
+    // Check 1: If the server confirms removal (is_loved is false), remove the card.
+    if (!data.is_loved && cardElement) {
+        cardElement.remove(); 
+        alert(data.message);
+    } 
+    // Check 2: If the server tried to re-add it (is_loved is true)
+    //         This means the item wasn't in favorites when clicked.
+    //         Since we only display favorited items, the card shouldn't be here.
+    //         Therefore, we still remove it and alert the user.
+    else if (data.is_loved && cardElement) {
+        cardElement.remove();
+        // A slightly different message, acknowledging the unexpected state
+        alert("The room was not found in favorites but was processed successfully. Card removed."); 
+    } 
+    else {
+        // Final fallback if the server returned success but no state change occurred.
+        alert("Error: Failed to update card display.");
+        this.disabled = false;
+    }
+})
+                .catch(error => {
+                    console.error('Error removing favourite:', error);
+                    alert(`Could not remove room from favorites. Error: ${error.message}`);
+                    this.disabled = false; // Re-enable button on failure
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block section %}
+<div class="container" style="padding-top: 150px; padding-bottom: 50px;">
+    
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <h1 class="text-center"><span style="color: black; text-decoration: underline;">{{ title }}</span>'s profile</h1>
+            {% if user.is_authenticated %}
+                <p class="text-center text-muted">Viewing profile for <span style="color: rgb(0, 89, 255);">@{{ user_profile.username }}</span></p>
+            {% endif %}
+            
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row">
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Personal Account Details</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Username:</strong> {{ user_profile.username }}</p>
+                    <p><strong>Account Type:</strong> 
+                        {% if user_profile.is_hotel_owner %}
+                            <span class="badge bg-success">Hotel Owner 🏨</span>
+                        {% else %}
+                            <span class="badge bg-info text-dark">Standard User</span>
+                        {% endif %}
+                    </p>
+                    <hr>
+                    <p><strong>Full Name:</strong> {{ user_profile.first_name }} {{ user_profile.last_name }}</p>
+                    <p><strong>Email:</strong> {{ user_profile.email }}</p>
+                    <p><strong>Phone:</strong> {{ user_profile.phone_number|default:"N/A" }}</p>
+                    <p><strong>Date Joined:</strong> {{ user_profile.date_joined|date:"M d, Y" }}</p>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="{% url 'profile_edit' %}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                    <a href="{% url 'profile_delete' %}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash-alt"></i> Delete Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if user_profile.is_hotel_owner %}
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Hotel Details</h5>
+                    </div>
+                    {% if hotel %}
+                        <div class="card-body">
+                            <p><strong>Hotel Name:</strong> {{ hotel.hotel_name }}</p>
+                            <p><strong>Place:</strong> {{ hotel.place }}</p>
+                            <p><strong>Address:</strong> {{ hotel.address }}</p>
+                            <p><strong>License Number:</strong> {{ hotel.license_number }}</p>
+                            <hr>
+                            <p class="text-muted">Document links will appear here once implemented.</p>
+                            </div>
+                        <div class="card-footer">
+                            <a href="#" class="btn btn-outline-success btn-sm disabled">
+                                <i class="fas fa-hotel"></i> Edit Hotel Details (Future Feature)
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="card-body">
+                            <p class="text-danger">No Hotel record found linked to this owner account.</p>
+                            <small class="text-muted">This may happen if the second step of registration was not completed.</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

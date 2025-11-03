@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Hotel Rooms{% endblock %}
+
+{% block section %}
+    <div class="container my-5" style="min-height: 70vh;">
+        <header class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h2 font-weight-bold text-dark mb-0">
+                    Room Management Dashboard
+                </h1>
+                
+                {% if hotel_registered %}
+                    <p class="h5 text-primary font-weight-medium mt-1">Hotel: {{ hotel.hotel_name }}</p>
+                    <p class="text-secondary small mt-1">Total Rooms: {{ rooms.count }}</p>
+                {% endif %}
+            </div>
+            {% if hotel_registered %}
+                <a href="{% url 'add_room' %}" class="btn btn-success btn-lg shadow">
+                    <i class="fa fa-plus me-2"></i> Add New Room
+                </a>
+            {% endif %}
+        </header>
+
+        {% if not hotel_registered %}
+            <div class="alert alert-warning border-left border-4 border-warning p-4 shadow-sm" role="alert">
+                <p class="font-weight-bold">Setup Required</p>
+                <p>{{ message }}</p>
+                <a href="{% url 'register_hotel_details' %}" class="mt-2 btn btn-sm btn-outline-warning">
+                    Go to Hotel Registration
+                </a>
+            </div>
+            
+        {% else %}
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-0">
+                    {% if rooms %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th class="p-3">No.</th>
+                                        <th class="p-3">Type</th>
+                                        <th class="p-3">Description</th>
+                                        <th class="p-3">Price/Night</th>
+                                        <th class="p-3">Occupancy</th>
+                                        <th class="p-3">Status</th>
+                                        <th class="p-3 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for room in rooms %}
+                                        <tr>
+                                            <td class="p-3 font-weight-bold">{{ room.room_number }}</td>
+                                            <td class="p-3">{{ room.room_type }}</td>
+                                            <td class="p-3">{{ room.description }}</td>
+                                            <td class="p-3 text-success">${{ room.price_per_night }}</td>
+                                            <td class="p-3 text-secondary">{{ room.max_occupancy }} Guests</td>
+                                            <td class="p-3">
+                                                <span class="badge 
+                                                    {% if room.is_available %} bg-success {% else %} bg-danger {% endif %}">
+                                                    {% if room.is_available %} Available {% else %} Booked {% endif %}
+                                                </span>
+                                            </td>
+                                            <td class="p-3 text-center">
+                                                <a href="{% url 'owner_room_edit' pk=room.id %}" class="btn btn-sm btn-info me-2 text-white">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </a>
+                                                <button type="button" 
+                                                    class="btn btn-sm btn-danger delete-room-btn" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteRoomModal"
+                                                    data-room-id="{{ room.id }}" 
+                                                    data-room-number="{{ room.room_number }}" 
+                                                    data-room-type="{{ room.room_type }}"
+                                                    data-delete-url="{% url 'owner_room_delete' pk=room.id %}">
+                                                    <i class="fa fa-trash"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-5 text-center text-secondary">
+                            <i class="fa fa-bed fa-4x mb-3 text-muted"></i>
+                            <h3 class="mt-2 text-dark">No Rooms Found</h3>
+                            <p class="mt-1 text-muted">
+                                There are currently no rooms listed for {{ hotel.hotel_name|default:"your hotel" }}.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+        {% endif %}
+    </div>
+
+    <div class="modal fade" id="deleteRoomModal" tabindex="-1" aria-labelledby="deleteRoomModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteRoomModalLabel"><i class="fa fa-exclamation-triangle me-2"></i> Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to permanently delete Room <strong id="modal-room-number" class="text-danger"></strong> 
+                        (<span id="modal-room-type"></span>)?</p>
+                    <p class="fw-bold">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="delete-form" method="post" action="">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Pure JavaScript to handle setting the modal content and form action
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteModal = document.getElementById('deleteRoomModal');
+            
+            if (deleteModal) {
+                // Attach listener to the modal's show event
+                deleteModal.addEventListener('show.bs.modal', function (event) {
+                    // Button that triggered the modal
+                    const button = event.relatedTarget;
+                    
+                    // Extract info from data-bs-* attributes
+                    const roomNumber = button.getAttribute('data-room-number');
+                    const roomType = button.getAttribute('data-room-type');
+                    const deleteUrl = button.getAttribute('data-delete-url');
+                    
+                    // Update the modal's content
+                    const modalRoomNumber = deleteModal.querySelector('#modal-room-number');
+                    const modalRoomType = deleteModal.querySelector('#modal-room-type');
+                    const deleteForm = deleteModal.querySelector('#delete-form');
+                    
+                    modalRoomNumber.textContent = roomNumber;
+                    modalRoomType.textContent = roomType;
+                    
+                    // Set the form action dynamically to the correct delete URL
+                    deleteForm.action = deleteUrl;
+                });
+            }
+        });
+    </script>
+{% endblock %}

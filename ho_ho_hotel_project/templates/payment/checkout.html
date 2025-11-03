@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Checkout for Room {{ room.room_number }}{% endblock %}
+
+{% block section %}
+    <div class="container my-5" style="max-width: 600px; min-height: 70vh;">
+        <div class="card shadow-lg p-4" style="margin-top: 150px;">
+            <h1 class="card-title text-center text-primary mb-4">Confirm Your Booking</h1>
+            
+            <div class="alert alert-info text-center" role="alert">
+                <i class="fas fa-info-circle me-2"></i> You are paying the price for 1 night to confirm your booking.
+            </div>
+
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Room Type:
+                    <span class="fw-bold">{{ room.room_type }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Hotel:
+                    <span class="fw-bold">{{ room.hotel.hotel_name }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center fs-4 bg-light">
+                    Total Amount:
+                    <span class="fw-bold text-success">₹{{ amount|floatformat:2|intcomma }}</span>
+                </li>
+            </ul>
+
+            <button id="rzp-button1" class="btn btn-primary btn-lg w-100">
+                <i class="fas fa-credit-card me-2"></i> Pay Now with Razorpay
+            </button>
+            <small class="text-center text-muted mt-2">Powered by Razorpay</small>
+        </div>
+    </div>
+
+    {# Razorpay SDK Script #}
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    {% comment %} 
+        We use an embedded hidden form to handle the submission of results back to the server.
+        This form is dynamically filled by the JavaScript handler.
+    {% endcomment %}
+    <form id="payment-verification-form" method="POST" action="{% url 'payment_verify' %}" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id" value="{{ order_id }}">
+        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+        <input type="hidden" name="payment_object_id" id="payment_object_id_input" value="{{ payment_object_id }}">
+    </form>
+
+
+    <script>
+        // Data passed from the Django view
+        const razorpayKey = "{{ razorpay_key }}";
+        const orderId = "{{ order_id }}";
+        const amount = "{{ amount_in_cents }}";
+        const roomName = "Room {{ room.room_number }} at {{ room.hotel.hotel_name }}";
+        const userEmail = "{{ request.user.email|default:'' }}";
+        const userPhone = "{{ request.user.phone_number|default:'1234567890' }}"; 
+        
+        const verificationForm = document.getElementById('payment-verification-form');
+
+
+        // --- Razorpay Handler ---
+        document.getElementById('rzp-button1').onclick = function(e) {
+            e.preventDefault();
+
+            var options = {
+                "key": razorpayKey, 
+                "amount": amount,
+                "currency": "INR",
+                "name": "Ho-Ho Hotel Booking",
+                "description": roomName,
+                "order_id": orderId, 
+                "handler": function (response) {
+                    // This function runs immediately after a successful payment on the modal
+                    
+                    // 1. Fill the hidden form fields with the response data
+                    const paymentIdInput = document.getElementById('razorpay_payment_id');
+                    const signatureInput = document.getElementById('razorpay_signature');
+                    
+                    paymentIdInput.value = response.razorpay_payment_id;
+                    signatureInput.value = response.razorpay_signature;
+
+                    // --- CRITICAL DEBUGGING LOGS ---
+                    console.log('Razorpay SUCCESS response received:', response);
+                    console.log('Form field set - Payment ID:', paymentIdInput.value);
+                    console.log('Form field set - Signature:', signatureInput.value);
+                    // ---------------------------------
+
+                    // 2. Submit the form for backend verification
+                    verificationForm.submit();
+                },
+                "prefill": {
+                    "name": "{{ request.user.get_full_name|default:request.user.username }}",
+                    "email": userEmail,
+                    "contact": userPhone
+                },
+                "theme": {
+                    "color": "#0d6efd" 
+                }
+            };
+            
+            var rzp1 = new Razorpay(options);
+
+            // Handle payment failure/interruption (when the modal is closed without payment)
+            rzp1.on('payment.failed', function (response) {
+                // When payment is failed/interrupted, the handler function above does NOT run.
+                // We submit the form anyway, but without the payment ID/signature, 
+                // which tells the backend it was a cancellation/failure.
+                console.log('Razorpay FAILED response received:', response);
+                verificationForm.submit(); 
+            });
+
+            rzp1.open();
+        }
+    </script>
+{% endblock %}

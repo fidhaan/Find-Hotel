@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+ {% block title %}Edit Room {{ room.room_number }} {% endblock %} 
+ {% block section %}
+<br />
+<br />
+<br />
+<br />
+<br />
+
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-warning text-dark text-center py-3">
+          <h3 class="mb-0">
+            <i class="fas fa-pencil-alt me-2"></i> Edit Room:
+            <strong>{{ room.room_number }}</strong>
+          </h3>
+          <p class="mb-0 text-muted small">
+            {{ room.get_room_type_display }} at {{ room.hotel.hotel_name }}
+          </p>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %} {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {% for error in form.non_field_errors %}
+              <p class="mb-0">{{ error }}</p>
+              {% endfor %}
+            </div>
+            {% endif %} {% for field in form %}
+
+            <div class="mb-3">
+              <label for="{{ field.id_for_label }}" class="form-label"
+                >{{ field.label }}</label
+              >
+              {{ field }} {% for error in field.errors %}
+              <div class="form-text text-danger">{{ error }}</div>
+              {% endfor %} {% if field.help_text %}
+              <div class="form-text text-muted">{{ field.help_text }}</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+            <div class="d-grid gap-2 mt-4">
+              <button type="submit" class="btn btn-warning btn-lg">
+                Save Changes
+              </button>
+
+              <a
+                href="{% url 'owner_room_list' %}"
+                class="btn btn-outline-secondary"
+                >Cancel</a
+              >
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {# --- REVIEWS SECTION FOR HOTEL OWNER --- #}
+      <div class="card shadow-lg border-0 mt-5">
+        <div style="background-color: black;" class="card-header bg- text-white py-3">
+          <h4 class="mb-0">Customer Reviews & Feedback</h4>
+        </div>
+        <div class="card-body p-4">
+          {% if review_count > 0 %}
+          <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+    <h5 class="me-3 mb-0">Average Rating: 
+        <span class="badge bg-warning text-dark">{{ avg_rating|floatformat:1 }}</span>
+    </h5>
+    
+  
+{% include 'partials/rating_stars.html' with avg_rating=avg_rating %}
+    
+    <span class="ms-2 text-muted">({{ review_count }} Total Reviews)</span>
+</div>
+
+          <h6 class="mb-3 text-primary">Latest Reviews:</h6>
+          <div class="list-group">
+            {% for review in reviews %}
+            <div
+              class="list-group-item list-group-item-action flex-column align-items-start mb-2 rounded-lg shadow-sm"
+            >
+              <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1 text-dark">{{ review.user.username }}</h6>
+                <small class="text-muted"
+                  >{{ review.created_at|date:"M d, Y" }}</small
+                >
+              </div>
+              <div class="mb-2">
+    {# Correct Syntax for Individual Review Rating #}
+    {% include 'partials/rating_stars.html' with rating=review.rating %}
+</div>
+              <p class="mb-1">{{ review.comment }}</p>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="alert alert-info mb-0 text-center">
+            <i class="fas fa-info-circle me-2"></i> This room has no customer
+            reviews yet.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {# --------------------------------------- #}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Room {{ room.room_number }} Details{% endblock %}
+
+{% block section %}
+    <div class="container my-5">
+        
+        <a href="{% url 'room_results' %}" class="btn btn-outline-secondary mb-3">
+            <i class="fas fa-arrow-left"></i> Back to Search Results
+        </a>
+
+        <div style="margin-top: 100px;" class="card shadow-lg mb-5">
+            <div class="row g-0">
+                
+                <div class="col-md-5">
+                    {% if room.photo %}
+                        <img src="{{ room.photo.url }}" class="img-fluid rounded-start room-photo" alt="Photo of Room {{ room.room_number }}">
+                    {% else %}
+                        <div class="p-5 bg-light d-flex align-items-center justify-content-center h-100 rounded-start">
+                            <i class="fas fa-image fa-4x text-muted"></i>
+                            <span class="ms-3 text-muted">No Photo Available</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-7">
+                    <div class="card-body p-4">
+                        
+                        <h1 class="card-title display-6 mb-2 text-primary">
+                            Room #{{ room.room_number }}
+                        </h1>
+                        <h2 class="h4 card-subtitle text-muted mb-3 border-bottom pb-2">
+                            📌 Type: {{ room.room_type }} | Hotel 🏨: {{ room.hotel.hotel_name }}
+                        </h2>
+                        
+                        <div class="d-flex align-items-center mb-4">
+                            {% include 'partials/rating_stars.html' with rating=avg_rating %}
+                            <span class="ms-2 text-muted">({{ review_count }} reviews)</span>
+                        </div>
+                        
+                        <p class="card-text lead">{{ room.description|default:"No description provided for this room." }}</p>
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <h5 class="mt-3 mb-2 text-" style="color: rgb(0, 172, 0);"><i class="fas fa-bed me-1"></i> Room Specs</h5>
+                                <ul class="list-group list-group-flush mb-4">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Price per Night:
+                                        <span class="fw-bold fs-5 text-success">₹{{ room.price_per_night }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Max Occupancy:
+                                        <span><i class="fas fa-users"></i> {{ room.max_occupancy }} Guests</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Availability:
+                                        {% if room.is_available %}
+                                            <span class="badge bg-success"><i class="fas fa-check-circle"></i> Available</span>
+                                        {% else %}
+                                            <span class="badge bg-danger"><i class="fas fa-times-circle"></i> Booked</span>
+                                        {% endif %}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <h5 class="mt-3 mb-2 text-" style="color: rgb(0, 56, 223);"><i class="fas fa-hotel me-1"></i> Hotel Information</h5>
+                                <ul class="list-group list-group-flush mb-4">
+                                    <li class="list-group-item d-flex align-items-center">
+                                        📍Location:
+                                        <span style="margin-left: 10px;">{{ room.hotel.place }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-start" style="width: 360px;">🏨 Address: 
+                                        <a style="width: 225px; margin-left: 10px; color: black; text-decoration: none;" href="https://www.google.com/maps/search/{{ room.hotel.address }}">{{ room.hotel.address }}</a>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        📧 Email:<a style="color: black; text-decoration: none; margin-left: 10px; font-weight: bold;" href="mailto:{{ room.hotel.owner.email }}">{{ room.hotel.owner.email }}</a>
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        📞 Contact Phone:
+                                        <span>
+                                            {% if room.hotel.owner.phone_number %}
+                                                <a style="margin-left: 10px;" href="tel:{{ room.hotel.owner.phone_number }}">{{ room.hotel.owner.phone_number }}</a>
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            {% if room.is_available %}
+                                <a href="{% url 'checkout_room' room_id=room.id %}" class="btn btn-primary btn-lg w-100 booking-button">
+                                    <i class="fas fa-calendar-check me-2"></i> Book This Room
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary btn-lg w-100" disabled>
+                                    Currently Unavailable
+                                </button>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ============================================== -->
+        <!-- RATING AND REVIEW SECTION -->
+        <!-- ============================================== -->
+
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 class="mb-4 text-primary">Customer Reviews ({{ review_count }})</h2>
+
+                {% if can_review %}
+                <!-- Review Submission Form (Only visible if user has paid but not reviewed) -->
+                <div class="card mb-4 shadow-sm border-info">
+                    <div class="card-body">
+                        <h5 class="card-title text-info"><i class="fas fa-pencil-alt me-2"></i> Leave a Review</h5>
+                        <form method="POST" action="{% url 'submit_review' room_id=room.id %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="rating" class="form-label">Your Rating (1-5 Stars)</label>
+                                <select class="form-select" id="rating" name="rating" required>
+                                    <option value="" disabled selected>Select a rating</option>
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="4">4 - Very Good</option>
+                                    <option value="3">3 - Good</option>
+                                    <option value="2">2 - Fair</option>
+                                    <option value="1">1 - Poor</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="comment" class="form-label">Review Comment (Optional)</label>
+                                <textarea class="form-control" id="comment" name="comment" rows="3" maxlength="500"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-info"><i class="fas fa-star me-2"></i> Submit Review</button>
+                        </form>
+                    </div>
+                </div>
+                {% elif has_reviewed %}
+                <!-- Message if user has reviewed -->
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i> Thank you! You have already reviewed this room.
+                </div>
+                {% elif user.is_authenticated and not has_reviewed and not can_review %}
+                <!-- Message if user is authenticated but not eligible -->
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> You must successfully complete a booking for this room before leaving a review.
+                </div>
+                {% endif %}
+
+                <!-- Existing Reviews -->
+                {% if reviews %}
+                    {% for review in reviews %}
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0 text-dark">{{ review.user.username }} 
+                                    <small class="text-muted ms-2">({{ review.created_at|date:"M d, Y" }})</small>
+                                </h6>
+                                {% include 'partials/rating_stars.html' with rating=review.rating %}
+                            </div>
+                            {% if review.comment %}
+                                <p class="card-text">{{ review.comment }}</p>
+                            {% else %}
+                                <p class="card-text text-muted fst-italic">No comment provided.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-light text-center">
+                        Be the first to leave a review!
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </div>
+    
+    <style>
+        .room-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .card-title {
+            font-weight: 600;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Simple partial template needed for rendering stars -->
+{% include 'partials/rating_stars.html' %} 
+{% endblock %}

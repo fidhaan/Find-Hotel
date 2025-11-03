@@ -1,0 +1,13 @@
+{% load review_filters %}
+{% load static %}
+
+<span class="star-rating">
+    {% for star in rating|star_range %} {% if star == 'full' %}
+            <i class="fas fa-star text-warning"></i>
+        {% elif star == 'half' %}
+            <i class="fas fa-star-half-alt text-warning"></i>
+        {% else %}
+            <i class="far fa-star text-warning"></i>
+        {% endif %}
+    {% endfor %}
+</span>

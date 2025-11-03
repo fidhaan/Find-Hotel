@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"Register" }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* BASE STYLING & FONT */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* NOTE: Custom classes are fully replaced by utility classes or applied via JS below. */
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-6">
+
+    <div class="w-full max-w-xl bg-white p-10 lg:p-12 rounded-xl shadow-2xl border border-gray-100">
+        
+        <header class="text-center mb-10 pb-4 border-b border-gray-200">
+            <h2 class="text-3xl font-extrabold text-gray-900 leading-tight">
+                {% if current_step == 2 %}Verification Required 🔒{% else %}Create Your Account ✨{% endif %}
+            </h2>
+            <p class="text-md text-gray-500 mt-2">
+                {% if current_step == 2 %}
+                Check your email and phone for the 6-digit codes to proceed.
+                {% else %}
+                Secure your details. All fields are required unless marked optional.
+                {% endif %}
+            </p>
+        </header>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-4 rounded-lg text-md font-semibold mb-6 
+                    {% if message.tags == 'success' %}bg-green-100 text-green-800 border-l-4 border-green-500
+                    {% elif message.tags == 'info' %}bg-blue-100 text-blue-800 border-l-4 border-blue-500
+                    {% else %}bg-red-100 text-red-800 border-l-4 border-red-500
+                    {% endif %}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" id="registrationForm" data-step1-classes="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out sm:text-sm" data-step2-classes="block w-full px-4 py-3 text-center text-xl font-bold tracking-widest border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out">
+            {% csrf_token %}
+            <input type="hidden" name="current_step" value="{{ current_step|default:1 }}">
+
+            {% if current_step == 1 or current_step == None %}
+                <div id="registration-form" class="space-y-6">
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ field.label_tag }}
+                            </label>
+
+                            {{ field }}
+                            
+                            {% if field.errors %}
+                                <ul class="text-red-600 text-sm mt-1 list-none ml-0 space-y-0">
+                                    {% for error in field.errors %}
+                                        <li class="flex items-center text-red-600 text-sm font-medium italic">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.332 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                            {{ error }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+
+                            {% if field.help_text %}
+                                <p class="text-xs italic text-gray-500 mt-1 pl-1">{{ field.help_text|safe }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="submit" class="w-full flex justify-center py-3.5 px-6 border border-transparent rounded-lg shadow-md text-lg font-bold text-white 
+                             bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-blue-400 mt-10 
+                             transition duration-200 ease-in-out transform hover:scale-[1.005]">
+                    Continue to Verification &rarr;
+                </button>
+
+            {% elif current_step == 2 %}
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    Enter Verification Codes
+                </h3>
+                
+                <div id="otp-verification-form" class="space-y-6">
+                    {% for field in otp_form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ field.label_tag }}
+                            </label>
+                            
+                            {{ field }}
+                            
+                            {% if field.errors %}
+                                <ul class="text-red-600 text-sm mt-1 list-none ml-0 space-y-0">
+                                    {% for error in field.errors %}
+                                        <li class="flex items-center text-red-600 text-sm font-medium italic">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.332 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                            {{ error }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                            
+                            {% if field.name == 'phone_otp' and not phone_required %}
+                                <p class="text-xs italic text-gray-500 mt-1 pl-1">This field is optional if you did not provide a phone number in Step 1.</p>
+                            {% elif field.help_text %}
+                                <p class="text-xs italic text-gray-500 mt-1 pl-1">{{ field.help_text|safe }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="submit" class="w-full flex justify-center py-3.5 px-6 border border-transparent rounded-lg shadow-md text-lg font-bold text-white 
+                             bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-green-400 mt-10 
+                             transition duration-200 ease-in-out transform hover:scale-[1.005]">
+                    Verify & Complete Registration 🎉
+                </button>
+            {% endif %}
+        </form>
+        
+        <footer class="text-sm text-center pt-8 border-t border-gray-200 mt-8">
+            <a href="{% url 'login' %}" class="font-semibold text-blue-600 hover:text-blue-700 transition duration-150">
+                Already have an account? Log In
+            </a>
+        </footer>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('registrationForm');
+            if (!form) return;
+
+            // Get the classes from the data attributes
+            const step1Classes = form.getAttribute('data-step1-classes');
+            const step2Classes = form.getAttribute('data-step2-classes');
+            
+            // Function to apply classes to elements
+            const applyClasses = (selector, classes) => {
+                const elements = form.querySelectorAll(selector);
+                elements.forEach(el => {
+                    // Check if the element is an input, select, or textarea
+                    if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                        // Exclude hidden and submit inputs
+                        if (el.type !== 'submit' && el.type !== 'hidden') {
+                            el.className = classes;
+                        }
+                    }
+                });
+            };
+
+            // Apply Step 1 classes
+            const step1Container = document.getElementById('registration-form');
+            if (step1Container) {
+                applyClasses('#registration-form input, #registration-form select, #registration-form textarea', step1Classes);
+            }
+
+            // Apply Step 2 (OTP) classes
+            const step2Container = document.getElementById('otp-verification-form');
+            if (step2Container) {
+                applyClasses('#otp-verification-form input, #otp-verification-form select, #otp-verification-form textarea', step2Classes);
+            }
+        });
+    </script>
+
+</body>
+</html>
