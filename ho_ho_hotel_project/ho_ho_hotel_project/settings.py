@@ -92,10 +92,10 @@ WSGI_APPLICATION = 'ho_ho_hotel_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('NAME'), # Use the full name from PythonAnywhere
-        'USER': config('USER'),              # Your PythonAnywhere username
-        'PASSWORD': config('PASSWORD'),    # The password you set on the Databases tab
-        'HOST': config('HOST')             # The Hostname from PythonAnywhere
+        'NAME': config('DATABASE_NAME'), # Use the full name from PythonAnywhere
+        'USER': config('DATABASE_USER'),              # Your PythonAnywhere username
+        'PASSWORD': config('DATABASE_PASSWORD'),    # The password you set on the Databases tab
+        'HOST': config('DATABASE_HOST')             # The Hostname from PythonAnywhere
     }
 }
 
