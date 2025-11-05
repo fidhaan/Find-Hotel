@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-import dj_database_url
 from decouple import config
 
 import os
@@ -29,7 +28,11 @@ SECRET_KEY =config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'projecthotel204.pythonanywhere.com',
+    '.pythonanywhere.com',
+    'http://127.0.0.1:8000'
+]
 
 
 # Application definition
@@ -82,22 +85,37 @@ WSGI_APPLICATION = 'ho_ho_hotel_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+# settings.py
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DATABASE_NAME'), # Use the full name from PythonAnywhere
-        'USER': config('DATABASE_USER'),              # Your PythonAnywhere username
-        'PASSWORD': config('DATABASE_PASSWORD'),    # The password you set on the Databases tab
-        'HOST': config('DATABASE_HOST')             # The Hostname from PythonAnywhere
+# ... (Make sure DEBUG is True for local development)
+DEBUG = True 
+# ...
+
+if DEBUG:
+    # ----------------------------------------------------
+    # 1. LOCAL DEVELOPMENT SETTINGS (Uses SQLite3)
+    # ----------------------------------------------------
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    # ----------------------------------------------------
+    # 2. PRODUCTION SETTINGS (Uses PythonAnywhere MySQL)
+    # ----------------------------------------------------
+    # Make sure these are pulled correctly from your environment variables
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ.get('DATABASE_NAME', 'default_db_name'), # Should pull projecthotel204$default
+            'USER': os.environ.get('DATABASE_USER', 'default_user'),
+            'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'default_pass'),
+            'HOST': os.environ.get('DATABASE_HOST', 'localhost'), # Should pull pythonanywhere host
+            'PORT': os.environ.get('DATABASE_PORT', 3306),
+        }
+    }
 
 
 # Password validation
