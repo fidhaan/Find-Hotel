@@ -83,7 +83,11 @@ class Favourite(models.Model):
         ordering = ['-added_on']
 
     def __str__(self):
-        return f"{self.user.username} favourited Room {self.room.room_number}"
+        # Safely return the ID if related objects are not found
+        try:
+            return f"Favourite by {self.user.username} for {self.room.room_number}"
+        except AttributeError:
+            return f"Favourite object {self.id}"
     
 class Review(models.Model):
     # Rating options (1 to 5 stars)
@@ -117,4 +121,8 @@ class Review(models.Model):
         unique_together = ('user', 'room') 
 
     def __str__(self):
-        return f"Review for Room {self.room.room_number} by {self.user.username} ({self.rating} stars)"
+        # Safely return the ID if related objects are not found
+        try:
+            return f"Review by {self.user.username} for Room {self.room.room_number} ({self.rating} stars)"
+        except AttributeError:
+            return f"Review object {self.id}"
