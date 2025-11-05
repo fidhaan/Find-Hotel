@@ -86,9 +86,6 @@ WSGI_APPLICATION = 'ho_ho_hotel_project.wsgi.application'
 
 # settings.py
 
-# ... (Make sure DEBUG is True for local development)
-DEBUG = True 
-# ...
 
 if DEBUG:
     # ----------------------------------------------------
