@@ -112,28 +112,27 @@
                 
                 <button type="submit" class="w-full flex justify-center py-3 px-6 border border-transparent rounded-lg shadow-md text-base font-medium text-white 
                              bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mt-8 transition duration-150">
-                    Submit Details & Send Verification Codes &rarr;
+                    Submit Details & Send Verification Code &rarr;
                 </button>
 
             {% elif current_step == 3 %}
                 <div id="step-3-form" class="space-y-6">
-                    <h3 class="text-xl font-bold text-gray-800 text-center mb-6">Enter Verification Codes</h3>
+                    <h3 class="text-xl font-bold text-gray-800 text-center mb-6">Enter Email Verification Code</h3>
+                    
+                    {# Loop through OTP form fields, but skip phone_otp #}
                     {% for field in otp_form %}
-                        <div class="form-group">
-                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1 text-center">
-                                {{ field.label_tag }}
-                            </label>
-                            {{ field }}
-                            {% if field.errors %}
-                                <ul class="text-red-600 text-sm mt-1 text-center">{{ field.errors }}</ul>
-                            {% endif %}
-                            
-                            {% if field.name == 'phone_otp' and not phone_required %}
-                                <small class="text-xs italic text-gray-500 mt-1 block text-center">
-                                    Skip this field if you did not provide a phone number.
-                                </small>
-                            {% endif %}
-                        </div>
+                        {% if field.name == 'email_otp' %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1 text-center">
+                                    {{ field.label_tag }}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <ul class="text-red-600 text-sm mt-1 text-center">{{ field.errors }}</ul>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        {# The phone_otp field is intentionally excluded from rendering #}
                     {% endfor %}
                 </div>
 
@@ -164,7 +163,8 @@
             const applyClasses = (containerId, classes) => {
                 const container = document.getElementById(containerId);
                 if (container) {
-                    const elements = container.querySelectorAll('input:not([type="submit"]):not([type="hidden"]), select, textarea');
+                    // Only select input/select/textarea elements that are directly part of the step
+                    const elements = container.querySelectorAll('input:not([type="submit"]):not([type="hidden"]):not([type="file"]), select, textarea');
                     elements.forEach(el => {
                         el.className = classes;
                     });

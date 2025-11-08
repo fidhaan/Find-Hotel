@@ -329,25 +329,24 @@ class HotelOwnerRegistrationView(View):
                     hotel.owner = user
                     hotel.save()
 
-                    # 3. Generate and Save OTPs
+                    # 3. Generate and Save OTPs (ONLY EMAIL OTP REMAINS)
                     email_otp = generate_otp()
-                    phone_otp = generate_otp()
+                    # phone_otp = generate_otp() # REMOVED: Phone OTP generation
                     
                     user.email_otp = email_otp 
-                    user.phone_otp = phone_otp 
+                    user.phone_otp = None # Set phone_otp to None explicitly
                     user.save() 
                     
-                    # 4. Send OTPs to the actual user's contacts
+                    # 4. Send OTPs to the actual user's contacts (ONLY EMAIL REMAINS)
                     send_otp_to_email(user.email, email_otp)
-                    send_otp_to_phone(user.phone_number, phone_otp)
+                    # send_otp_to_phone(user.phone_number, phone_otp) # REMOVED: Phone OTP sending
                     
                     # 5. Store temporary user ID and clear owner data
                     request.session['temp_owner_user_id'] = str(user.pk) 
                     del request.session['owner_registration_data']
 
-                    # Update message to reflect user's contacts
-                    phone_display = user.phone_number[-4:] if user.phone_number else 'N/A'
-                    messages.info(request, f"Verification codes sent! Check your email ({user.email}) and phone number (ending in {phone_display}) for the OTPs to finalize registration.")
+                    # Update message to reflect only email verification
+                    messages.info(request, f"Verification code sent! Check your email ({user.email}) for the OTP to finalize registration.")
                     
                     # Rerender Step 3 (Verification Form)
                     return render(request, self.template_name, {
@@ -379,7 +378,7 @@ class HotelOwnerRegistrationView(View):
                     'title': 'Register Hotel Details (Step 2 of 3)'
                 })
 
-        # --- Step 3: OTP Verification and Activation ---
+        # --- Step 3: OTP Verification and Activation (ONLY EMAIL REMAINS) ---
         elif current_step == 3:
             
             temp_user_id = request.session.get('temp_owner_user_id')
@@ -399,18 +398,19 @@ class HotelOwnerRegistrationView(View):
             if otp_form.is_valid():
                 
                 email_match = otp_form.cleaned_data['email_otp'] == user.email_otp
-                phone_match = otp_form.cleaned_data['phone_otp'] == user.phone_otp
+                # phone_match is implicitly True as phone verification is no longer required
+                phone_match = True 
                 
                 user.is_email_verified = email_match
-                user.is_phone_verified = phone_match
-
+                user.is_phone_verified = True # Always True
+                
                 if not email_match:
                     messages.error(request, "Invalid Email Verification Code.")
-                if not phone_match:
-                    messages.error(request, "Invalid Phone Verification Code.")
+                # if not phone_match: # REMOVED: Phone match check
+                #     messages.error(request, "Invalid Phone Verification Code.") # REMOVED
 
                 
-                if user.is_email_verified and user.is_phone_verified:
+                if user.is_email_verified and user.is_phone_verified: # Only email_verified needs to be True
                     # Success: Activate account
                     user.is_active = True
                     user.email_otp = None
@@ -422,7 +422,7 @@ class HotelOwnerRegistrationView(View):
                     return redirect(self.success_url)
                 
                 else:
-                    # Failure: Re-render step 3 with error messages
+                    # Failure: Re-render step 3 with error messages (only email failure possible)
                     user.save() 
                     return render(request, self.template_name, {
                         'otp_form': otp_form,
@@ -438,7 +438,8 @@ class HotelOwnerRegistrationView(View):
                     'title': 'Verify Owner Details (Step 3 of 3)'
                 })
         
-        return redirect('owner_register') 
+        return redirect('owner_register')
+    
 class UserProfileView(LoginRequiredMixin, DetailView):
     
     model = CustomUser
