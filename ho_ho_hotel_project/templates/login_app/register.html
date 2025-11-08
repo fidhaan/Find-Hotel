@@ -25,7 +25,7 @@
             </h2>
             <p class="text-md text-gray-500 mt-2">
                 {% if current_step == 2 %}
-                Check your email and phone for the 6-digit codes to proceed.
+                     Check your email and phone for the 6-digit codes to proceed.
                 {% else %}
                 Secure your details. All fields are required unless marked optional.
                 {% endif %}
@@ -88,33 +88,33 @@
                 </h3>
                 
                 <div id="otp-verification-form" class="space-y-6">
-                    {% for field in otp_form %}
-                        <div class="form-group">
-                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-                                {{ field.label_tag }}
-                            </label>
-                            
-                            {{ field }}
-                            
-                            {% if field.errors %}
-                                <ul class="text-red-600 text-sm mt-1 list-none ml-0 space-y-0">
-                                    {% for error in field.errors %}
-                                        <li class="flex items-center text-red-600 text-sm font-medium italic">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.332 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                            {{ error }}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% endif %}
-                            
-                            {% if field.name == 'phone_otp' and not phone_required %}
-                                <p class="text-xs italic text-gray-500 mt-1 pl-1">This field is optional if you did not provide a phone number in Step 1.</p>
-                            {% elif field.help_text %}
-                                <p class="text-xs italic text-gray-500 mt-1 pl-1">{{ field.help_text|safe }}</p>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
+ {% for field in otp_form %}
+                        {% if field.name != 'phone_otp' %}
+ <div class="form-group">
+ <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+ {{ field.label_tag }}
+ </label>
+ 
+ {{ field }}
+ 
+ {% if field.errors %}
+ <ul class="text-red-600 text-sm mt-1 list-none ml-0 space-y-0">
+ {% for error in field.errors %}
+  <li class="flex items-center text-red-600 text-sm font-medium italic">
+ <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.332 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+ {{ error }}
+  </li>
+ {% endfor %}
+  </ul>
+  {% endif %}
+
+             {% if field.help_text %}
+ <p class="text-xs italic text-gray-500 mt-1 pl-1">{{ field.help_text|safe }}</p>
+ {% endif %}
+ </div>
+         {% endif %}
+ {% endfor %}
+ </div>
                 
                 <button type="submit" class="w-full flex justify-center py-3.5 px-6 border border-transparent rounded-lg shadow-md text-lg font-bold text-white 
                              bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-green-400 mt-10 

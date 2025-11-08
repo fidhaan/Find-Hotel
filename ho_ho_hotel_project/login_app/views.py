@@ -89,20 +89,16 @@ class RegistrationView(View):
                     user.is_active = False 
                     
                     email_otp = generate_otp()
-                    phone_otp = generate_otp()
+                    # phone_otp = generate_otp() # REMOVED: Phone OTP generation
                     
                     email_input = user.email
-                    # Using form.cleaned_data which is available here
-                    phone_number_input = form.cleaned_data.get('phone_number') 
+                    # REMOVED: phone_number_input is no longer needed
                     
                     user.email_otp = email_otp
                     
-                    # 1. Attempt Phone OTP Sending
-                    if phone_number_input:
-                        user.phone_otp = phone_otp
-                        send_otp_to_phone(phone_number_input, phone_otp)
-                    else:
-                        user.phone_otp = None
+                    # 1. REMOVED: Attempt Phone OTP Sending block
+                    user.phone_otp = None # Ensure phone_otp is explicitly null/None
+                    user.phone_number = None # REMOVED: The form won't save it, but explicitly set to None if necessary
                     
                     user.save() 
                     
@@ -111,21 +107,15 @@ class RegistrationView(View):
                     
                     request.session['temp_user_id'] = str(user.pk)
                     
-                    # User feedback message
-                    contact_msg = f"{email_input}"
-                    if phone_number_input:
-                        contact_msg += f" and phone number ending in {phone_number_input[-4:]}"
-                    else:
-                        contact_msg += "."
-                    
-                    messages.info(request, f"Verification codes sent to your email ({contact_msg})! Enter the OTPs to finalize registration.")
+                    # User feedback message (Simplified)
+                    messages.info(request, f"Verification code sent to your email ({email_input})! Enter the OTP to finalize registration.")
                     
                     # Transition to Step 2 (OTP form)
                     return render(request, self.template_name, {
                         'form': form,
                         'otp_form': self.otp_form_class(),
                         'current_step': 2,
-                        'phone_required': bool(phone_number_input), 
+                        'phone_required': False, # Changed to False since phone verification is skipped
                         'title': 'Verify Your Details (Step 2 of 2)'
                     })
                 
@@ -133,12 +123,12 @@ class RegistrationView(View):
                     messages.error(request, "A user with that username or email already exists.")
                     return render(request, self.template_name, {'form': form, 'current_step': 1})
                 except Exception as e:
-                    # ENHANCED LOGGING: This block catches failures in either send_otp_to_phone or send_otp_to_email
+                    # ENHANCED LOGGING: This block catches failures in send_otp_to_email
                     print("\n\n" + "="*80)
                     print(f"*** ACTUAL ERROR: An external service failed during registration.")
                     print(f"*** The underlying error is: {e}")
                     print("="*80 + "\n\n")
-                    messages.error(request, "An unexpected error occurred during OTP sending. Please ensure your email and phone number are correct.")
+                    messages.error(request, "An unexpected error occurred during OTP sending. Please ensure your email is correct.")
                     return render(request, self.template_name, {'form': form, 'current_step': 1})
 
             else:
@@ -175,18 +165,12 @@ class RegistrationView(View):
                     user.is_email_verified = False
                 
                 # Phone verification
-                if user.phone_number and user.phone_otp:
-                    phone_otp_entered = otp_form.cleaned_data.get('phone_otp')
-                    if phone_otp_entered and phone_otp_entered == user.phone_otp:
-                        user.is_phone_verified = True
-                    else:
-                        messages.error(request, "Invalid Phone Verification Code.")
-                        user.is_phone_verified = False
-                else:
-                    user.is_phone_verified = True # Skip verification if no phone number was provided
+                # This logic is simplified/cleaned up as user.phone_number should be None
+                user.is_phone_verified = True # Always skip verification since no phone number was provided
+                # REMOVED: The logic block that checks and validates phone_otp_entered 
 
                 # Finalize registration if both are verified
-                if user.is_email_verified and user.is_phone_verified:
+                if user.is_email_verified and user.is_phone_verified: # Since is_phone_verified is True, only email matters
                     user.is_active = True
                     user.email_otp = None
                     user.phone_otp = None
@@ -197,13 +181,13 @@ class RegistrationView(View):
                     return redirect(self.success_url)
                 
                 else:
-                    # Verification failed, re-render Step 2
+                    # Verification failed (only email could fail), re-render Step 2
                     user.save() 
                     return render(request, self.template_name, {
                         'form': user_form_instance, 
                         'otp_form': otp_form,
                         'current_step': 2,
-                        'phone_required': bool(user.phone_number),
+                        'phone_required': False, # Changed to False
                         'title': 'Verify Your Details (Step 2 of 2)'
                     })
             
@@ -213,13 +197,12 @@ class RegistrationView(View):
                     'form': user_form_instance,
                     'otp_form': otp_form,
                     'current_step': 2,
-                    'phone_required': bool(user.phone_number),
+                    'phone_required': False, # Changed to False
                     'title': 'Verify Your Details (Step 2 of 2)'
                 })
         
         # Fallback for unexpected POST requests
         return redirect('register')
-    
 class CustomLoginView(LoginView):
     
     form_class = AuthenticationForm 
@@ -671,17 +654,17 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
         form = self.get_form()
         
         email_otp_sent = self.request.session.get('email_otp_sent', False)
-        phone_otp_sent = self.request.session.get('phone_otp_sent', False)
+        # phone_otp_sent = self.request.session.get('phone_otp_sent', False) # REMOVED
 
         # --- Verification Step (OTP submitted) ---
-        if email_otp_sent or phone_otp_sent:
+        if email_otp_sent: # Check only for email_otp_sent
             
             # Retrieve OTPs entered by user
             email_otp_entered = request.POST.get('email_otp')
-            phone_otp_entered = request.POST.get('phone_otp')
+            # phone_otp_entered = request.POST.get('phone_otp') # REMOVED
             
             is_email_match = True
-            is_phone_match = True
+            is_phone_match = True # Always True since phone verification is skipped
             success = True
             
             # 1. Verify Email OTP
@@ -698,26 +681,14 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
                     is_email_match = False
                     messages.error(request, "Invalid Email Verification Code.")
                     
-            # 2. Verify Phone OTP
-            if phone_otp_sent:
-                if not phone_otp_entered:
-                    is_phone_match = False
-                    messages.error(request, "Phone verification code is required.")
-                elif str(phone_otp_entered) == str(user.phone_otp):
-                    # Success: Move new phone to official field
-                    user.phone_number = user.new_phone_number
-                    user.new_phone_number = None
-                    user.phone_otp = None
-                else:
-                    is_phone_match = False
-                    messages.error(request, "Invalid Phone Verification Code.")
+            # 2. REMOVED: Verify Phone OTP Block
             
-            success = is_email_match and is_phone_match
+            success = is_email_match and is_phone_match # is_phone_match is always True here
             
             if success:
                 # Clear session flags and save final changes
                 if 'email_otp_sent' in request.session: del request.session['email_otp_sent']
-                if 'phone_otp_sent' in request.session: del request.session['phone_otp_sent']
+                # if 'phone_otp_sent' in request.session: del request.session['phone_otp_sent'] # REMOVED
                 
                 # Save the user with updated email/phone and cleared OTPs/new_fields
                 user.save() 
@@ -740,17 +711,17 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         user = self.get_object() 
         original_email = user.email or '' 
-        original_phone = user.phone_number or ''
-        
+        # original_phone is no longer strictly needed for comparison but can remain
+
         # Get the new potential values from the submitted form
         new_email = form.cleaned_data.get('email')
-        new_phone = form.cleaned_data.get('phone_number')
+        # new_phone is no longer needed for separate verification logic
 
         needs_email_verification = False
-        needs_phone_verification = False
-        is_phone_otp_sent_successfully = False
+        # needs_phone_verification is now False by default and not checked
+        # is_phone_otp_sent_successfully is no longer needed
 
-        # 1. Check Email Change
+        # 1. Check Email Change (EMAIL VERIFICATION LOGIC REMAINS)
         email_changed = (
             new_email and new_email.strip().lower() != original_email.strip().lower()
         )
@@ -770,56 +741,38 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
             user.new_email = None
             user.email_otp = None
             
-        # 2. Check Phone Number Change
-        phone_changed = (
-            new_phone and new_phone != original_phone
-        )
-        
-        if phone_changed:
-            user.new_phone_number = new_phone
-            
-            # Keep the existing official phone number until verification is complete
-            user.phone_number = original_phone 
-            
-            phone_otp = generate_otp()
-            user.phone_otp = phone_otp
-            
-            # Attempt to send OTP and check for Twilio failure
-            is_phone_otp_sent_successfully = send_otp_to_phone(new_phone, phone_otp)
-            
-            if is_phone_otp_sent_successfully:
-                needs_phone_verification = True
-            else:
-                user.phone_otp = None # Invalidate the OTP on failure
-                messages.warning(self.request, "Failed to send SMS verification code to the new phone number. You only need to verify the email change (if any).")
-        else:
-            # If phone wasn't changed, ensure temporary fields are clear/don't carry over
-            user.new_phone_number = None
-            user.phone_otp = None
+        # --- REMOVED: Phone Number Change/OTP Logic Block ---
+        # The phone number will now be updated directly by form.save() if no email verification is needed.
+        user.new_phone_number = None
+        user.phone_otp = None
+        # ---------------------------------------------------
 
         # 3. Handle Saving
-        needs_verification = needs_email_verification or needs_phone_verification
+        needs_verification = needs_email_verification # Only check email now
 
         if needs_verification:
             
-            # Update non-sensitive fields from the form first
+            # Update ALL fields from the form, including the new phone number, but keeping the old email
             self.object = form.save(commit=False) 
             
+            # The form.save(commit=False) overwrote user.email, so restore the original email temporarily
+            self.object.email = original_email 
+            
             # Save the user with updated non-sensitive fields, new_fields, and OTPs
-            user.save() 
+            self.object.save() # Use self.object to save the changes from the form
             
             # Set session flags based on successful OTP sending
             self.request.session['email_otp_sent'] = needs_email_verification
-            self.request.session['phone_otp_sent'] = needs_phone_verification and is_phone_otp_sent_successfully
+            self.request.session['phone_otp_sent'] = False # Always set to False now
             
             # Redirect to the same URL to show the verification fields
-            messages.info(self.request, "Verification initiated. Please enter the codes sent to your new email and/or phone number.")
+            messages.info(self.request, "Verification initiated. Please enter the code sent to your new email to finalize the update.")
             return redirect(self.request.path) 
         
         else:
-            # No sensitive fields changed (or the form only contained non-sensitive changes)
+            # No email change (phone change is now handled immediately)
             
-            # Save all non-sensitive fields via the parent class method
+            # Save all fields via the parent class method, which updates phone_number directly
             response = super().form_valid(form)
             
             # Clear any temporary fields just in case
@@ -829,7 +782,7 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
             user.phone_otp = None
             user.save() 
             
-            messages.success(self.request, "Profile updated successfully (No verification needed).")
+            messages.success(self.request, "Profile updated successfully.")
             return response
         
 class CustomUserCreationForm:
