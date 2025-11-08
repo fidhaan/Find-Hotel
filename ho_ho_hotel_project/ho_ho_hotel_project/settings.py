@@ -87,18 +87,6 @@ WSGI_APPLICATION = 'ho_ho_hotel_project.wsgi.application'
 
 # settings.py
 
-
-# if DEBUG:
-#     # ----------------------------------------------------
-#     # 1. LOCAL DEVELOPMENT SETTINGS (Uses SQLite3)
-#     # ----------------------------------------------------
-#     DATABASES = {
-#         'default': {
-#             'ENGINE': 'django.db.backends.sqlite3',
-#             'NAME': BASE_DIR / 'db.sqlite3',
-#         }
-#     }
-# else:
     
 DATABASES = {
         'default': {
