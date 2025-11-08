@@ -17,7 +17,7 @@ class Room(models.Model):
         max_length=50, 
         help_text="e.g., 'Penthouse Suite', 'Family Room', 'Studio'"
     )
-    price_per_night = models.DecimalField(max_digits=600, decimal_places=2)
+    price_per_night = models.DecimalField(max_digits=8, decimal_places=2)
     max_occupancy = models.PositiveSmallIntegerField(default=2)
     description = models.TextField(blank=True)
     is_available = models.BooleanField(default=True)
@@ -46,7 +46,7 @@ class Room(models.Model):
         verbose_name_plural = "Hotel Rooms"
 
     def __str__(self):
-        return f"Room {self.room_number} ({self.get_room_type_display()}) at {self.hotel.hotel_name}"
+        return f"Room {self.room_number} ({self.room_type}) at {self.hotel.hotel_name}"
     
 class Favourite(models.Model):
     

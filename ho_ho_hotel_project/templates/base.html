@@ -55,7 +55,7 @@
         <div class="container">
           <div class="float-left">
             <ul class="list header_social">
-              <li><a href="mailto:info@example.com" style="text-decoration: none; color: inherit;">
+              <li><a href="mailto:fiiidhaaan@gmail.com" style="text-decoration: none; color: inherit;">
   <i class="fas fa-envelope" style="color: rgb(7, 44, 253);"></i>
   radissoncontact@radisson.com
 </a></li>
@@ -82,7 +82,7 @@
         <nav class="navbar navbar-expand-lg navbar-light">
           <div class="container">
             <!-- Brand and toggle get grouped for better mobile display -->
-            <a class="navbar-brand logo_h" href="index.html"
+            <a class="navbar-brand logo_h" href="{% url 'home' %}"
               ><img src="/static/img/logo.png" alt=""
             /></a>
             <button
@@ -105,7 +105,7 @@
             >
               <ul class="nav navbar-nav menu_nav ml-auto">
                 <li class="nav-item active">
-                  <a class="nav-link" href="index.html">Home</a>
+                  <a class="nav-link" href="{% url 'home' %}">Home</a>
                 </li>
                 <li class="nav-item">
                   {% if user.is_authenticated %}
@@ -138,13 +138,13 @@
                   {% elif user.is_authenticated and not user.is_hotel_owner %}
                   <a class="nav-link" href="{% url 'room_results' %}">SEARCH</a>
                   {% else %}
-                  <a class="nav-link" href="">GALLERY</a>
+                  <a class="nav-link" href="{% url 'home' %}">GALLERY</a>
                   {% endif %}
                 </li>
 
                 <li class="nav-item submenu dropdown">
                   <a
-                    href="#"
+                    href="{% url 'home' %}"
                     class="nav-link dropdown-toggle"
                     data-toggle="dropdown"
                     role="button"
@@ -171,14 +171,14 @@
                         >ROOMS</a
                       >
                       {% else %}
-                      <a class="nav-link" href="">PAGE</a>
+                      <a class="nav-link" href="{% url 'home' %}">PAGE</a>
                       {% endif %}
                     </li>
                   </ul>
                 </li>
                 <li class="nav-item submenu dropdown">
                   <a
-                    href="#"
+                    href="{% url 'home' %}"
                     class="nav-link dropdown-toggle"
                     data-toggle="dropdown"
                     role="button"
@@ -188,17 +188,17 @@
                   >
                   <ul class="dropdown-menu">
                     <li class="nav-item">
-                      <a class="nav-link" href="blog.html">Blog</a>
+                      <a class="nav-link" href="{% url 'home' %}">Blog</a>
                     </li>
                     <li class="nav-item">
-                      <a class="nav-link" href="single-blog.html"
+                      <a class="nav-link" href="{% url 'home' %}"
                         >Blog Details</a
                       >
                     </li>
                   </ul>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="contact.html">Contact</a>
+                  <a class="nav-link" href="{% url 'home' %}">Contact</a>
                 </li>
                 {% if user.is_authenticated %}
                 <li class="nav-item">
@@ -232,18 +232,18 @@
               <h6>Quick Links</h6>
               <div class="row">
                 <ul class="col footer-nav">
-                  <li><a style="color: white;" href="#">Sitemaps</a></li>
-                  <li><a style="color: white;" href="#">Categories</a></li>
-                  <li><a style="color: white;" href="#">Archives</a></li>
-                  <li><a style="color: white;" href="#">Advertise</a></li>
-                  <li><a style="color: white;" href="#">Ad Choice</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Sitemaps</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Categories</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Archives</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Advertise</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Ad Choice</a></li>
                 </ul>
                 <ul class="col footer-nav">
-                  <li><a style="color: white;" href="#">Privacy Policy</a></li>
-                  <li><a style="color: white;" href="#">Terms of Use</a></li>
-                  <li><a style="color: white;" href="#">Help Center</a></li>
-                  <li><a style="color: white;" href="#">Newsletters</a></li>
-                  <li><a style="color: white;" href="#">Feedback</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Privacy Policy</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Terms of Use</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Help Center</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Newsletters</a></li>
+                  <li><a style="color: white;" href="{% url 'home' %}">Feedback</a></li>
                 </ul>
               </div>
             </div>
@@ -323,15 +323,15 @@
                 document.write(new Date().getFullYear());
               </script>
               All rights reserved | This template is made by
-              <a style="color: white; text-decoration: none;" href="https://colorlib.com" target="_blank">Colorlib</a>
+              <a style="color: red; text-decoration: none;" href="https://colorlib.com" target="_blank">Colorlib</a>
               <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
             </p>
           </div>
           <div class="footer-social d-flex align-items-center">
-            <a href="#"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#"><i class="fa-brands fa-youtube"></i></a>
-            <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-            <a href="#"><i class="fa-brands fa-telegram"></i></a>
+            <a href="https://www.instagram.com/ffidhaan"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://www.youtube.com/@Ffllassh"><i class="fa-brands fa-youtube"></i></a>
+            <a href="https://x.com/fiddhaan"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="https://t.me/ffidhaan"><i class="fa-brands fa-telegram"></i></a>
           </div>
         </div>
       </div>

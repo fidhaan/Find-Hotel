@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from decouple import config
+
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,14 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY =os.environ.get('SECRET_KEY')
+SECRET_KEY =config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'projecthotel204.pythonanywhere.com',
-    '.pythonanywhere.com',
+    '127.0.0.1'
 ]
 
 
@@ -85,30 +87,15 @@ WSGI_APPLICATION = 'ho_ho_hotel_project.wsgi.application'
 
 # settings.py
 
-
-if DEBUG:
-    # ----------------------------------------------------
-    # 1. LOCAL DEVELOPMENT SETTINGS (Uses SQLite3)
-    # ----------------------------------------------------
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
-    # ----------------------------------------------------
-    # 2. PRODUCTION SETTINGS (Uses PythonAnywhere MySQL)
-    # ----------------------------------------------------
-    # Make sure these are pulled correctly from your environment variables
-    DATABASES = {
+    
+DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ.get('DATABASE_NAME', 'default_db_name'), # Should pull projecthotel204$default
-            'USER': os.environ.get('DATABASE_USER', 'default_user'),
-            'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'default_pass'),
-            'HOST': os.environ.get('DATABASE_HOST', 'localhost'), # Should pull pythonanywhere host
-            'PORT': os.environ.get('DATABASE_PORT', 3306),
+            'NAME': config('DATABASE_NAME'),
+            'USER': config('DATABASE_USER'),
+            'PASSWORD': config('DATABASE_PASSWORD'),
+            'HOST': config('DATABASE_HOST'),
+            'PORT': '3306'
         }
     }
 
@@ -174,9 +161,9 @@ EMAIL_PORT = 587
 
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
@@ -184,14 +171,14 @@ SERVER_EMAIL = EMAIL_HOST_USER
 
 # Twilio
 
-TWILIO_ACCOUNT_SID=os.environ.get('TWILIO_ACCOUNT_SID')
+TWILIO_ACCOUNT_SID=config('TWILIO_ACCOUNT_SID')
 
-TWILIO_AUTH_TOKEN=os.environ.get('TWILIO_AUTH_TOKEN')
+TWILIO_AUTH_TOKEN=config('TWILIO_AUTH_TOKEN')
 
-TWILIO_PHONE_NUMBER=os.environ.get('TWILIO_PHONE_NUMBER')
+TWILIO_PHONE_NUMBER=config('TWILIO_PHONE_NUMBER')
 
 # Payment
 
-RZP_KEY_ID = os.environ.get('RZP_KEY_ID')
+RZP_KEY_ID = config('RZP_KEY_ID')
 
-RZP_KEY_SECRET = os.environ.get('RZP_KEY_SECRET')
+RZP_KEY_SECRET = config('RZP_KEY_SECRET')
